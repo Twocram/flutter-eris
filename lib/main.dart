@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+import 'device_screen.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -10,33 +12,100 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter BLE For Eris'),
+      home: const MyHomePage(title: "Flutter BLE Eris"),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
-
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+  List<ScanResult> scanResultList = [];
+  bool _isScanning = false;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
+  @override
+  void initState() {
+    super.initState();
+    initBle();
+  }
+
+  void initBle() {
+    flutterBlue.isScanning.listen((isScanning) {
+      _isScanning = isScanning;
+      setState(() {});
     });
   }
 
+  scan() async {
+    if (!_isScanning) {
+      scanResultList.clear();
+      flutterBlue.startScan(timeout: Duration(seconds: 4));
+
+      flutterBlue.scanResults.listen((results) {
+        scanResultList = results;
+
+        setState(() {});
+      });
+    } else {
+      flutterBlue.stopScan();
+    }
+  }
+
+  Widget deviceSignal(ScanResult r) {
+    return Text(r.rssi.toString());
+  }
+
+  Widget deviceMacAddress(ScanResult r) {
+    return Text(r.device.id.id);
+  }
+
+  Widget deviceName(ScanResult r) {
+    String name = '';
+
+    if (r.device.name.isNotEmpty) {
+      name = r.device.name;
+    } else if (r.advertisementData.localName.isNotEmpty) {
+      name = r.advertisementData.localName;
+    } else {
+      name = 'Без имени';
+    }
+    return Text(name);
+  }
+
+  Widget leading(ScanResult r) {
+    return CircleAvatar(
+      child: Icon(
+        Icons.bluetooth,
+        color: Colors.white,
+      ),
+      backgroundColor: Colors.blue,
+    );
+  }
+
+  void onTap(ScanResult r) {
+    print('${r.device.name}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DeviceScreen(device: r.device)),
+    );
+  }
+
+  Widget listItem(ScanResult r) {
+    return ListTile(
+      onTap: () => onTap(r),
+      leading: leading(r),
+      title: deviceName(r),
+      subtitle: deviceMacAddress(r),
+      trailing: deviceSignal(r),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,24 +114,20 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+        child: ListView.separated(
+          itemCount: scanResultList.length,
+          itemBuilder: (context, index) {
+            return listItem(scanResultList[index]);
+          },
+          separatorBuilder: (BuildContext context, int index) {
+            return Divider();
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        onPressed: scan,
+        child: Icon(_isScanning ? Icons.stop : Icons.search),
+      ),
     );
   }
 }
