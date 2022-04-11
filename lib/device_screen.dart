@@ -7,7 +7,6 @@ class DeviceScreen extends StatefulWidget {
   DeviceScreen({Key? key, required this.device}) : super(key: key);
 
   final BluetoothDevice device;
-
   @override
   _DeviceScreenState createState() => _DeviceScreenState();
 }
@@ -16,14 +15,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
   String stateText = 'Подключение';
   String connectButtonText = 'Отключиться';
-
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
 
   StreamSubscription<BluetoothDeviceState>? _stateListener;
 
   @override
   void initState() {
-    // TODO: implement initState
     _stateListener = widget.device.state.listen((event) {
       debugPrint('event: $event');
       if (deviceState == event) {
@@ -36,10 +33,31 @@ class _DeviceScreenState extends State<DeviceScreen> {
     connect();
   }
 
+  getDeviceInfo() async {
+    List<BluetoothService> services = await widget.device.discoverServices();
+    for (BluetoothService service in services) {
+      getDeivceChar() async {
+        var characteristics = service.characteristics;
+        for (BluetoothCharacteristic c in characteristics) {
+          if (c.uuid.toString() == "FristCharId") {
+            List<int> value = await c.read();
+            print("VALUE: ${value}");
+          } else if (c.uuid.toString() == "SecondCharId") {
+            Future.delayed(Duration(milliseconds: 500), () async {
+              List<int> value = await c.read();
+              print("VALUE: ${value.}");
+            });
+          }
+        }
+      }
+
+      getDeivceChar();
+    }
+  }
+
   @override
   void dispose() {
     _stateListener?.cancel();
-
     disconnect();
     super.dispose();
   }
@@ -65,6 +83,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       case BluetoothDeviceState.connected:
         stateText = "Подключен";
         connectButtonText = "Отключиться";
+        getDeviceInfo();
         break;
 
       case BluetoothDeviceState.connecting:
@@ -78,6 +97,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future<bool> connect() async {
     Future<bool>? returnValue;
+
     setState(() {
       stateText = "Подключение";
     });
@@ -86,7 +106,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         .connect(autoConnect: false)
         .timeout(Duration(milliseconds: 10000), onTimeout: () {
       returnValue = Future.value(false);
-      debugPrint("timeout failed");
+      debugPrint("Время подключения истекло");
 
       setBleConnectionState(BluetoothDeviceState.disconnected);
     }).then((data) {
@@ -105,7 +125,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
         stateText = "Отключение";
       });
       widget.device.disconnect();
-    } catch (e) {}
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
