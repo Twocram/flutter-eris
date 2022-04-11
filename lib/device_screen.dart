@@ -46,10 +46,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
           List<int> value = await c.read();
           if (value.isNotEmpty) {
             // decoded = utf8.decoder.convert(value);
-            // final String decoded = utf8Decoder.convert(value.toList());
             // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decoded}");
             // TODO: need code for convert
-            print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${value}");
+            try {
+            final String decoded = utf8Decoder.convert(value);
+            print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${value}");              
+            } catch (e) {
+              print(e)
+            }
           } else {
             print("НЕТ ДАННЫХ");
           }
