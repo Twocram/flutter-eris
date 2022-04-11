@@ -46,11 +46,10 @@ class _MyHomePageState extends State<MyHomePage> {
   scan() async {
     if (!_isScanning) {
       scanResultList.clear();
-      flutterBlue.startScan(timeout: Duration(seconds: 4));
 
+      flutterBlue.startScan(timeout: Duration(seconds: 4));
       flutterBlue.scanResults.listen((results) {
         scanResultList = results;
-
         setState(() {});
       });
     } else {
@@ -90,7 +89,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void onTap(ScanResult r) {
-    print('${r.device.name}');
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => DeviceScreen(device: r.device)),
