@@ -48,7 +48,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
             // decoded = utf8.decoder.convert(value);
             // final String decoded = utf8Decoder.convert(value.toList());
             // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decoded}");
-            // TODO: need code for convert value
+            // TODO: need code for convert
             print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${value}");
           } else {
             print("НЕТ ДАННЫХ");
