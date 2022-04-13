@@ -14,10 +14,13 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceScreenState extends State<DeviceScreen> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
-  List<BluetoothCharacteristic> deviceChars = [];
   String stateText = 'Подключение';
   String connectButtonText = 'Отключиться';
+  String deviceRemoteId = '';
+  String deviceCharUuid = '';
+  String serviceUuid = '';
   final utf8Decoder = utf8.decoder;
+  List<String> decodedValues = [];
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
 
   StreamSubscription<BluetoothDeviceState>? _stateListener;
@@ -25,7 +28,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   void initState() {
     _stateListener = widget.device.state.listen((event) {
-      debugPrint('event: $event');
+      // debugPrint('event: $event');
       if (deviceState == event) {
         return;
       }
@@ -41,25 +44,26 @@ class _DeviceScreenState extends State<DeviceScreen> {
     for (final BluetoothService service in services) {
       var characteristics = service.characteristics;
       for (final BluetoothCharacteristic c in characteristics) {
-        print("ХАРАКТЕРИСТИКА: ${c}");
         if (c.properties.read) {
+          deviceCharUuid = c.uuid.toString();
+          deviceRemoteId = c.serviceUuid.toString();
           List<int> value = await c.read();
           if (value.isNotEmpty) {
-            // decoded = utf8.decoder.convert(value);
-            // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decoded}");
-            // TODO: need code for convert
             try {
-              final String decoded = utf8Decoder.convert(value);
-              print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decoded}");
+              final String decodedBytes = utf8Decoder.convert(value);
+              decodedValues.add(decodedBytes);
             } catch (e) {
-              print(e);
+              // print("ERROR DECODING ${e}");
             }
           } else {
-            print("НЕТ ДАННЫХ");
+            print("NO DATA");
           }
         }
       }
     }
+    print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decodedValues}");
+    print("CHARACTERISTIC_UUID-устройства: ${deviceCharUuid}");
+    print("REMOTE_ID-устройства: ${deviceRemoteId}");
   }
 
   @override
@@ -90,7 +94,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
       case BluetoothDeviceState.connected:
         stateText = "Подключен";
         connectButtonText = "Отключиться";
-        // getDeviceInfo();
         break;
 
       case BluetoothDeviceState.connecting:
@@ -159,6 +162,22 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 child: Text(connectButtonText)),
             OutlinedButton(
                 onPressed: getDeviceInfo, child: Text("Узнать информацию")),
+            Container(
+              padding: EdgeInsets.all(30),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      itemCount: decodedValues.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(title: Text('${decodedValues[index]}'));
+                      },
+                    ),
+                  )
+                ],
+              ),
+            )
           ],
         ),
       ),
