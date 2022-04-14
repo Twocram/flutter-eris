@@ -19,6 +19,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
   String deviceRemoteId = '';
   String deviceCharUuid = '';
   String serviceUuid = '';
+  bool isConnected = false;
+  bool isCharGetted = false;
+
   final utf8Decoder = utf8.decoder;
   List<String> decodedValues = [];
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
@@ -61,9 +64,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
         }
       }
     }
-    print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decodedValues}");
-    print("CHARACTERISTIC_UUID-устройства: ${deviceCharUuid}");
-    print("REMOTE_ID-устройства: ${deviceRemoteId}");
+    isCharGetted = true;
+    // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decodedValues}");
+    // print("CHARACTERISTIC_UUID-устройства: ${deviceCharUuid}");
+    // print("REMOTE_ID-устройства: ${deviceRemoteId}");
   }
 
   @override
@@ -85,6 +89,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       case BluetoothDeviceState.disconnected:
         stateText = 'Отключен';
         connectButtonText = 'Подключиться';
+        isConnected = false;
         break;
 
       case BluetoothDeviceState.disconnecting:
@@ -94,6 +99,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       case BluetoothDeviceState.connected:
         stateText = "Подключен";
         connectButtonText = "Отключиться";
+        isConnected = true;
         break;
 
       case BluetoothDeviceState.connecting:
@@ -140,6 +146,27 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
   }
 
+  Widget renderBtn(bool isConnected) {
+    return isConnected
+        ? OutlinedButton(
+            onPressed: getDeviceInfo, child: Text("Узнать информацию"))
+        : Text('');
+  }
+
+  Widget displayChars(bool charGetted) {
+    return charGetted
+        ? SizedBox(
+            height: 400,
+            child: ListView.builder(
+              itemCount: decodedValues.length,
+              itemBuilder: (context, index) {
+                return ListTile(title: Text('${decodedValues[index]}'));
+              },
+            ),
+          )
+        : Text('');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,21 +187,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   } else {}
                 },
                 child: Text(connectButtonText)),
-            OutlinedButton(
-                onPressed: getDeviceInfo, child: Text("Узнать информацию")),
+            renderBtn(isConnected),
             Container(
               padding: EdgeInsets.all(30),
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      itemCount: decodedValues.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(title: Text('${decodedValues[index]}'));
-                      },
-                    ),
-                  )
+                  displayChars(isCharGetted),
                 ],
               ),
             )
