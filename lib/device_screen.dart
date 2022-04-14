@@ -67,6 +67,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     setState(() {
       isCharGetted = true;
     });
+    decodedValues.add(deviceCharUuid);
+    decodedValues.add(deviceRemoteId);
     // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decodedValues}");
     // print("CHARACTERISTIC_UUID-устройства: ${deviceCharUuid}");
     // print("REMOTE_ID-устройства: ${deviceRemoteId}");
