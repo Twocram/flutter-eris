@@ -64,7 +64,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
         }
       }
     }
-    isCharGetted = true;
+    setState(() {
+      isCharGetted = true;
+    });
     // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decodedValues}");
     // print("CHARACTERISTIC_UUID-устройства: ${deviceCharUuid}");
     // print("REMOTE_ID-устройства: ${deviceRemoteId}");
@@ -90,6 +92,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
         stateText = 'Отключен';
         connectButtonText = 'Подключиться';
         isConnected = false;
+        setState(() {
+          isCharGetted = false;
+        });
         break;
 
       case BluetoothDeviceState.disconnecting:
