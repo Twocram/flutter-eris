@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_ble/main.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class DeviceScreen extends StatefulWidget {
@@ -45,6 +46,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   getDeviceInfo() async {
     List<BluetoothService> services = await widget.device.discoverServices();
     for (final BluetoothService service in services) {
+      print("SERVICE ----------- ${service}");
       var characteristics = service.characteristics;
       for (final BluetoothCharacteristic c in characteristics) {
         if (c.properties.read) {
@@ -60,6 +62,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
             }
           } else {
             print("NO DATA");
+          }
+        }
+
+        if (deviceState == BluetoothDeviceState.connected) {
+          try {
+            await c.write([0x12, 0x34], withoutResponse: false);
+          } catch (e) {
+            print("Не удалось добавить данные");
           }
         }
       }
@@ -178,6 +188,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          iconSize: 36,
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => {
+            disconnect(),
+            Navigator.pop(context),
+          },
+        ),
         title: Text(widget.device.name),
       ),
       body: Center(
