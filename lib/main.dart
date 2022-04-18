@@ -80,12 +80,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget leading(ScanResult r) {
     return CircleAvatar(
-      child: Icon(
-        Icons.bluetooth,
-        color: Colors.white,
-      ),
-      backgroundColor: Colors.blue,
-    );
+        child: Icon(
+          Icons.bluetooth,
+          color: Colors.white,
+        ),
+        backgroundColor:
+            r.advertisementData.connectable ? Colors.blue : Colors.red);
   }
 
   void onTap(ScanResult r) {
