@@ -43,10 +43,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
     connect();
   }
 
+  writeDataInDevice() async {
+    List<BluetoothService> services = await widget.device.discoverServices();
+    for (final BluetoothService s in services) {
+      print("SERVICE --------------- ${s}");
+    }
+  }
+
   getDeviceInfo() async {
     List<BluetoothService> services = await widget.device.discoverServices();
     for (final BluetoothService service in services) {
-      print("SERVICE ----------- ${service}");
       var characteristics = service.characteristics;
       for (final BluetoothCharacteristic c in characteristics) {
         if (c.properties.read) {
@@ -61,19 +67,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
               // print("ERROR DECODING ${e}");
             }
           } else {
-            print("NO DATA");
-          }
-        }
-
-        if (deviceState == BluetoothDeviceState.connected) {
-          try {
-            await c.write([0x12, 0x34], withoutResponse: false);
-          } catch (e) {
-            print("Не удалось добавить данные");
+            print("НЕТ ДАННЫХ");
           }
         }
       }
     }
+    // services[2].characteristics[0].write(
+    //     utf8.encode("MESSAGE FROM ANOTHER DEVICE"),
+    //     withoutResponse: true);
+
     setState(() {
       isCharGetted = true;
     });
@@ -163,10 +165,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
   }
 
-  Widget renderBtn(bool isConnected) {
+  Widget getDeviceInfoBtn(bool isConnected) {
     return isConnected
         ? OutlinedButton(
             onPressed: getDeviceInfo, child: Text("Узнать информацию"))
+        : Text('');
+  }
+
+  Widget writeDataInDeviceBtn(bool isConnected) {
+    return isConnected
+        ? OutlinedButton(
+            onPressed: writeDataInDevice,
+            child: Text("Записать характеристики"))
         : Text('');
   }
 
@@ -212,7 +222,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   } else {}
                 },
                 child: Text(connectButtonText)),
-            renderBtn(isConnected),
+            getDeviceInfoBtn(isConnected),
+            writeDataInDeviceBtn(isConnected),
             Container(
               padding: EdgeInsets.all(30),
               child: Column(
