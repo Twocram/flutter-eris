@@ -45,14 +45,29 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   writeDataInDevice() async {
     List<BluetoothService> services = await widget.device.discoverServices();
+    var testValue = [0x48, 0x49];
     for (final BluetoothService s in services) {
-      print("SERVICE --------------- ${s}");
+      // print("SERVICE --------------- ${s}");
+      var chars = s.characteristics;
+      for (final BluetoothCharacteristic c in chars) {
+        if (c.properties.write == true) {
+          try {
+            await c.write(utf8.encode("HELLO FROM OTHER DEVICE"),
+                withoutResponse: true);
+            decodedValues.add(testValue.toString());
+            print("ДАННЫЕ УСПЕШНО ДОБАВЛЕНЫ");
+          } catch (e) {
+            print("Не удалось добавить данные: ${e}");
+          }
+        }
+      }
     }
   }
 
   getDeviceInfo() async {
     List<BluetoothService> services = await widget.device.discoverServices();
     for (final BluetoothService service in services) {
+      print("SERVICE -------- ${service}");
       var characteristics = service.characteristics;
       for (final BluetoothCharacteristic c in characteristics) {
         if (c.properties.read) {
@@ -62,7 +77,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
           if (value.isNotEmpty) {
             try {
               final String decodedBytes = utf8Decoder.convert(value);
-              decodedValues.add(decodedBytes);
+              decodedBytes.isNotEmpty ? decodedValues.add(decodedBytes) : null;
             } catch (e) {
               // print("ERROR DECODING ${e}");
             }
@@ -72,15 +87,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
         }
       }
     }
+
+    decodedValues.add(deviceCharUuid);
+    decodedValues.add(deviceRemoteId);
     // services[2].characteristics[0].write(
     //     utf8.encode("MESSAGE FROM ANOTHER DEVICE"),
     //     withoutResponse: true);
-
     setState(() {
       isCharGetted = true;
     });
-    decodedValues.add(deviceCharUuid);
-    decodedValues.add(deviceRemoteId);
     // print("ДЕКОДИРОВАННЫЕ ДАННЫЕ: ${decodedValues}");
     // print("CHARACTERISTIC_UUID-устройства: ${deviceCharUuid}");
     // print("REMOTE_ID-устройства: ${deviceRemoteId}");
@@ -139,7 +154,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
     await widget.device
         .connect(autoConnect: false)
-        .timeout(Duration(milliseconds: 10000), onTimeout: () {
+        .timeout(Duration(milliseconds: 20000), onTimeout: () {
       returnValue = Future.value(false);
       debugPrint("Время подключения истекло");
 
@@ -176,14 +191,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return isConnected
         ? OutlinedButton(
             onPressed: writeDataInDevice,
-            child: Text("Записать характеристики"))
+            child: Text("Добавить характеристики"))
         : Text('');
   }
 
   Widget displayChars(bool charGetted) {
     return charGetted
         ? SizedBox(
-            height: 400,
+            height: 600,
             child: ListView.builder(
               itemCount: decodedValues.length,
               itemBuilder: (context, index) {
