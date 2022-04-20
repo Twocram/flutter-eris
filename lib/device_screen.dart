@@ -43,18 +43,20 @@ class _DeviceScreenState extends State<DeviceScreen> {
     connect();
   }
 
-  writeDataInDevice() async {
-    // inputDialog(context);
+  openWriteDialog() {
+    inputDialog(context);
+  }
+
+  writeDataInDevice(String userValue) async {
     List<BluetoothService> services = await widget.device.discoverServices();
-    var testValue = "HELLO FROM OTHER DEVICE";
     for (final BluetoothService s in services) {
       // print("SERVICE --------------- ${s}");
       var chars = s.characteristics;
       for (final BluetoothCharacteristic c in chars) {
         if (c.properties.write == true) {
           try {
-            await c.write(utf8.encode(testValue), withoutResponse: true);
-            decodedValues.add(testValue);
+            await c.write(utf8.encode(userValue), withoutResponse: true);
+            decodedValues.add(userValue);
             print("ДАННЫЕ УСПЕШНО ДОБАВЛЕНЫ");
           } catch (e) {
             print("Не удалось добавить данные: ${e}");
@@ -159,7 +161,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     child: new TextField(
                   autofocus: true,
                   decoration: new InputDecoration(
-                      labelText: "Название", hintText: 'hint'),
+                      labelText: "Название", hintText: 'Новое значение'),
                   onChanged: (value) {
                     customValue = value;
                   },
@@ -169,6 +171,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
             actions: <Widget>[
               FlatButton(
                   onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Назад")),
+              FlatButton(
+                  onPressed: () {
+                    writeDataInDevice(customValue);
                     Navigator.of(context).pop();
                   },
                   child: Text("Добавить"))
@@ -222,8 +230,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget writeDataInDeviceBtn(bool isConnected) {
     return isConnected
         ? OutlinedButton(
-            onPressed: writeDataInDevice,
-            child: Text("Добавить характеристики"))
+            onPressed: openWriteDialog, child: Text("Добавить характеристики"))
         : Text('');
   }
 
