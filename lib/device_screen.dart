@@ -44,17 +44,17 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   writeDataInDevice() async {
+    // inputDialog(context);
     List<BluetoothService> services = await widget.device.discoverServices();
-    var testValue = [0x48, 0x49];
+    var testValue = "HELLO FROM OTHER DEVICE";
     for (final BluetoothService s in services) {
       // print("SERVICE --------------- ${s}");
       var chars = s.characteristics;
       for (final BluetoothCharacteristic c in chars) {
         if (c.properties.write == true) {
           try {
-            await c.write(utf8.encode("HELLO FROM OTHER DEVICE"),
-                withoutResponse: true);
-            decodedValues.add(testValue.toString());
+            await c.write(utf8.encode(testValue), withoutResponse: true);
+            decodedValues.add(testValue);
             print("ДАННЫЕ УСПЕШНО ДОБАВЛЕНЫ");
           } catch (e) {
             print("Не удалось добавить данные: ${e}");
@@ -143,6 +143,38 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
     deviceState = event;
     setState(() {});
+  }
+
+  Future inputDialog(BuildContext context) async {
+    String customValue = "";
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Добавить данные"),
+            content: new Row(
+              children: <Widget>[
+                new Expanded(
+                    child: new TextField(
+                  autofocus: true,
+                  decoration: new InputDecoration(
+                      labelText: "Название", hintText: 'hint'),
+                  onChanged: (value) {
+                    customValue = value;
+                  },
+                ))
+              ],
+            ),
+            actions: <Widget>[
+              FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Добавить"))
+            ],
+          );
+        });
   }
 
   Future<bool> connect() async {
