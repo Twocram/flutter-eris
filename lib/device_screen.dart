@@ -26,9 +26,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   bool isServicesGetted = false;
 
   final utf8Decoder = utf8.decoder;
-  List<String> decodedValues = [];
+  final List<String> decodedValues = <String>[];
   List<String> deviceServices = [];
-  List<String> serviceItemChars = [];
 
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
 
@@ -61,8 +60,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
       for (final BluetoothCharacteristic c in chars) {
         if (c.uuid.toString() == deviceUuid) {
           try {
-            await c.write(utf8.encode(userValue), withoutResponse: true);
-            decodedValues.add(userValue);
+            await c.write(utf8.encode(userValue));
+            setState(() {
+              decodedValues.add(userValue);
+            });
+            print(decodedValues);
           } catch (e) {
             print("Не удалось добавить данные");
           }
@@ -118,7 +120,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
           if (value.isNotEmpty) {
             try {
               final String decodedBytes = utf8Decoder.convert(value);
-              decodedBytes.isNotEmpty ? decodedValues.add(decodedBytes) : null;
+              setState(() {
+                decodedValues.add(decodedBytes);
+              });
             } catch (e) {
               // print("ERROR DECODING ${e}");
             }
@@ -158,6 +162,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         isConnected = false;
         setState(() {
           isCharGetted = false;
+          isServicesGetted = false;
         });
         break;
 
